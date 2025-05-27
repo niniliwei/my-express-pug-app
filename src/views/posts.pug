@@ -1,0 +1,57 @@
+doctype html
+html(lang="zh-CN")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title= title
+    style.
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; text-align: center; }
+      .nav { background-color: white; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      .nav a { text-decoration: none; color: #333; margin: 0 1rem; font-weight: bold; }
+      .nav a:hover { color: #667eea; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }      .post-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+      .post-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      .post-card img { width: 100%; height: 200px; object-fit: cover; }
+      .post-card .image-placeholder { width: 100%; height: 200px; background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 3rem; }
+      .post-content { padding: 1.5rem; }
+      .post-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; }
+      .post-meta { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+      .post-excerpt { color: #444; line-height: 1.6; }
+      .tags { margin-top: 1rem; }
+      .tag { background-color: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-right: 0.5rem; }
+  body
+    .header
+      h1 🌍 旅行日记
+      p 发现世界的美好，分享旅途的故事
+    
+    nav.nav
+      a(href="/") 首页
+      a(href="/posts") 所有文章
+      a(href="/destinations") 目的地
+      form(method="GET", action="/search", style="display: inline-block; margin-left: 2rem;")
+        input(type="text", name="q", placeholder="搜索文章...", style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;")
+        button(type="submit", style="padding: 0.5rem 1rem; background-color: #667eea; color: white; border: none; border-radius: 4px; margin-left: 0.5rem;") 搜索
+    
+    .container
+      h2 所有文章
+      if posts && posts.length > 0
+        .post-grid
+          each post in posts
+            if post
+              .post-card
+                if post.imageUrl
+                  img(src=post.imageUrl, alt=post.title, onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';")
+                  .image-placeholder(style="display: none;") 🖼️
+                .post-content
+                  .post-title
+                    a(href=`/posts/${post.id}`, style="text-decoration: none; color: inherit;")= post.title
+                  .post-meta
+                    span 📍 #{post.destination}, #{post.country}
+                    span(style="margin-left: 1rem;") 📅 #{post.publishedAt.toLocaleDateString('zh-CN')}
+                  .post-excerpt= post.content.substring(0, 150) + (post.content.length > 150 ? '...' : '')
+                  .tags
+                    each tag in post.tags
+                      span.tag= tag
+      else
+        p 暂无文章
