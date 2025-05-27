@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import { IndexController } from './index';
 import { BlogService } from '../services/blogService';
 
-// Mock the BlogService
-jest.mock('../services/blogService');
-const mockBlogService = BlogService as jest.Mocked<typeof BlogService>;
-
 describe('IndexController', () => {
     let controller: IndexController;
     let mockRequest: Partial<Request>;
     let mockResponse: Partial<Response>;
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     beforeEach(() => {
         controller = new IndexController();
@@ -32,13 +32,13 @@ describe('IndexController', () => {
                 { id: '2', title: 'Recent Post 2', publishedAt: new Date() }
             ];
 
-            mockBlogService.getFeaturedPosts.mockReturnValue(mockFeaturedPosts as any);
-            mockBlogService.getAllPosts.mockReturnValue(mockRecentPosts as any);
+            const spyFeatured = jest.spyOn(BlogService, 'getFeaturedPosts').mockReturnValue(mockFeaturedPosts as any);
+            const spyAll = jest.spyOn(BlogService, 'getAllPosts').mockReturnValue(mockRecentPosts as any);
 
             controller.getIndex(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getFeaturedPosts).toHaveBeenCalled();
-            expect(mockBlogService.getAllPosts).toHaveBeenCalled();
+            expect(spyFeatured).toHaveBeenCalled();
+            expect(spyAll).toHaveBeenCalled();
             expect(mockResponse.render).toHaveBeenCalledWith('index', {
                 title: '旅行日记 - 探索世界的美好',
                 featuredPosts: mockFeaturedPosts,
@@ -54,11 +54,11 @@ describe('IndexController', () => {
                 { id: '2', title: 'Post 2' }
             ];
 
-            mockBlogService.getAllPosts.mockReturnValue(mockPosts as any);
+            const spyAll = jest.spyOn(BlogService, 'getAllPosts').mockReturnValue(mockPosts as any);
 
             controller.getAllPosts(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getAllPosts).toHaveBeenCalled();
+            expect(spyAll).toHaveBeenCalled();
             expect(mockResponse.render).toHaveBeenCalledWith('posts', {
                 title: '所有文章 - 旅行日记',
                 posts: mockPosts
@@ -70,11 +70,11 @@ describe('IndexController', () => {
         it('should render post page when post exists', () => {
             const mockPost = { id: '1', title: 'Test Post' };
             mockRequest.params = { id: '1' };
-            mockBlogService.getPostById.mockReturnValue(mockPost as any);
+            const spyGet = jest.spyOn(BlogService, 'getPostById').mockReturnValue(mockPost as any);
 
             controller.getPost(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getPostById).toHaveBeenCalledWith('1');
+            expect(spyGet).toHaveBeenCalledWith('1');
             expect(mockResponse.render).toHaveBeenCalledWith('post', {
                 title: 'Test Post - 旅行日记',
                 post: mockPost
@@ -83,11 +83,11 @@ describe('IndexController', () => {
 
         it('should render 404 page when post does not exist', () => {
             mockRequest.params = { id: '999' };
-            mockBlogService.getPostById.mockReturnValue(undefined);
+            const spyGet = jest.spyOn(BlogService, 'getPostById').mockReturnValue(undefined);
 
             controller.getPost(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getPostById).toHaveBeenCalledWith('999');
+            expect(spyGet).toHaveBeenCalledWith('999');
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(mockResponse.render).toHaveBeenCalledWith('404', {
                 title: '文章未找到 - 旅行日记'
@@ -102,11 +102,11 @@ describe('IndexController', () => {
                 { id: '2', name: 'Destination 2' }
             ];
 
-            mockBlogService.getAllDestinations.mockReturnValue(mockDestinations as any);
+            const spyAll = jest.spyOn(BlogService, 'getAllDestinations').mockReturnValue(mockDestinations as any);
 
             controller.getDestinations(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getAllDestinations).toHaveBeenCalled();
+            expect(spyAll).toHaveBeenCalled();
             expect(mockResponse.render).toHaveBeenCalledWith('destinations', {
                 title: '目的地 - 旅行日记',
                 destinations: mockDestinations
@@ -119,13 +119,13 @@ describe('IndexController', () => {
             const mockDestination = { id: '1', name: 'Test Destination' };
             const mockPosts = [{ id: '1', title: 'Post about destination' }];
             mockRequest.params = { id: '1' };
-            mockBlogService.getDestinationById.mockReturnValue(mockDestination as any);
-            mockBlogService.getPostsByDestination.mockReturnValue(mockPosts as any);
+            const spyGet = jest.spyOn(BlogService, 'getDestinationById').mockReturnValue(mockDestination as any);
+            const spyPosts = jest.spyOn(BlogService, 'getPostsByDestination').mockReturnValue(mockPosts as any);
 
             controller.getDestination(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getDestinationById).toHaveBeenCalledWith('1');
-            expect(mockBlogService.getPostsByDestination).toHaveBeenCalledWith('Test Destination');
+            expect(spyGet).toHaveBeenCalledWith('1');
+            expect(spyPosts).toHaveBeenCalledWith('Test Destination');
             expect(mockResponse.render).toHaveBeenCalledWith('destination', {
                 title: 'Test Destination - 旅行日记',
                 destination: mockDestination,
@@ -135,11 +135,11 @@ describe('IndexController', () => {
 
         it('should render 404 page when destination does not exist', () => {
             mockRequest.params = { id: '999' };
-            mockBlogService.getDestinationById.mockReturnValue(undefined);
+            const spyGet = jest.spyOn(BlogService, 'getDestinationById').mockReturnValue(undefined);
 
             controller.getDestination(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.getDestinationById).toHaveBeenCalledWith('999');
+            expect(spyGet).toHaveBeenCalledWith('999');
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(mockResponse.render).toHaveBeenCalledWith('404', {
                 title: '目的地未找到 - 旅行日记'
@@ -151,11 +151,11 @@ describe('IndexController', () => {
         it('should render search results when query is provided', () => {
             const mockResults = [{ id: '1', title: 'Search Result' }];
             mockRequest.query = { q: 'test query' };
-            mockBlogService.searchPosts.mockReturnValue(mockResults as any);
+            const spySearch = jest.spyOn(BlogService, 'searchPosts').mockReturnValue(mockResults as any);
 
             controller.searchPosts(mockRequest as Request, mockResponse as Response);
 
-            expect(mockBlogService.searchPosts).toHaveBeenCalledWith('test query');
+            expect(spySearch).toHaveBeenCalledWith('test query');
             expect(mockResponse.render).toHaveBeenCalledWith('search', {
                 title: '搜索结果: "test query" - 旅行日记',
                 query: 'test query',
