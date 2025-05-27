@@ -1,5 +1,9 @@
 name: Travel Blog CI/CD
 
+permissions:
+  contents: write
+  packages: write
+
 on:
   push:
     branches: [ main, develop ]
